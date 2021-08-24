@@ -57,7 +57,7 @@ public class RecommendationsController {
     }
 
     //Delay introduced in recommendationService.getAllBooks()
-    //resilience4j will time out the request after configured timeout
+    //resilience4j will timeout the request after configured timeout
     //resilience4j will retry the request for the configured number of times
     @RequestMapping(value = "/delayedRecommendations", method = RequestMethod.GET, produces = MediaType.APPLICATION_JSON_VALUE)
     Iterable<Recommendation> getAllWithDelay() throws ExecutionException, InterruptedException {
