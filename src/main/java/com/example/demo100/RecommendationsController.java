@@ -46,7 +46,6 @@ public class RecommendationsController {
         TimeLimiter timeLimiter = TimeLimiter.of(Duration.ofSeconds(10));
         ScheduledExecutorService scheduledExecutorService = Executors.newScheduledThreadPool(3);
         Supplier<Iterable<Recommendation>> supplier = () -> recommendationRepository.findAll();
-
         CompletableFuture<Iterable<Recommendation>> future = Decorators
                 .ofSupplier(supplier)
                 .withThreadPoolBulkhead(threadPoolBulkhead)
@@ -68,7 +67,6 @@ public class RecommendationsController {
         TimeLimiter timeLimiter = TimeLimiter.of(Duration.ofSeconds(8));
         ScheduledExecutorService scheduledExecutorService = Executors.newScheduledThreadPool(3);
         Supplier<Iterable<Recommendation>> supplier = () -> recommendationService.getAllBooks();
-
         CompletableFuture<Iterable<Recommendation>> future = Decorators
                 .ofSupplier(supplier)
                 .withThreadPoolBulkhead(threadPoolBulkhead)
