@@ -3,7 +3,9 @@ package com.example.demo100;
 import io.github.resilience4j.bulkhead.ThreadPoolBulkhead;
 import io.github.resilience4j.decorators.Decorators;
 import io.github.resilience4j.retry.Retry;
+import io.github.resilience4j.retry.RetryConfig;
 import io.github.resilience4j.timelimiter.TimeLimiter;
+import io.github.resilience4j.timelimiter.TimeLimiterConfig;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -17,10 +19,7 @@ import javax.annotation.PostConstruct;
 import java.time.Duration;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.ExecutionException;
-import java.util.concurrent.Executors;
-import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.*;
 import java.util.function.Supplier;
 
 @RestController
@@ -60,17 +59,29 @@ public class RecommendationsController {
     //resilience4j will retry the request for the configured number of times
     @RequestMapping(value = "/delayedRecommendations", method = RequestMethod.GET, produces = MediaType.APPLICATION_JSON_VALUE)
     Iterable<Recommendation> getAllWithDelay() throws ExecutionException, InterruptedException {
-        Retry retry = Retry.ofDefaults("test");
+
         ThreadPoolBulkhead threadPoolBulkhead = ThreadPoolBulkhead
                 .ofDefaults("test");
-        TimeLimiter timeLimiter = TimeLimiter.of(Duration.ofSeconds(8));
+
+        TimeLimiterConfig timeLimiterConfig = TimeLimiterConfig
+                .custom()
+                .cancelRunningFuture(true)
+                .timeoutDuration(Duration.ofSeconds(8))
+                .build();
+
+        RetryConfig retryConfig = RetryConfig
+                .custom()
+                .maxAttempts(4)
+                .retryExceptions(TimeoutException.class)
+                .build();
+
         ScheduledExecutorService scheduledExecutorService = Executors.newScheduledThreadPool(3);
         Supplier<Iterable<Recommendation>> supplier = () -> recommendationService.getAllBooks();
         CompletableFuture<Iterable<Recommendation>> future = Decorators
                 .ofSupplier(supplier)
                 .withThreadPoolBulkhead(threadPoolBulkhead)
-                .withTimeLimiter(timeLimiter, scheduledExecutorService)
-                .withRetry(retry, scheduledExecutorService)
+                .withTimeLimiter(TimeLimiter.of(timeLimiterConfig), scheduledExecutorService)
+                .withRetry(Retry.of("config", retryConfig), scheduledExecutorService)
                 .get()
                 .toCompletableFuture();
         return future.get();

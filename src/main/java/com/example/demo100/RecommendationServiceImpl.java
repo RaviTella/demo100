@@ -26,7 +26,7 @@ public class RecommendationServiceImpl implements RecommendationService {
         List<Long> timeList = Arrays.asList(10000L, 6000L);
         Random rand = new Random();
         Long randomTime = timeList.get(rand.nextInt(timeList.size()));
-        logger.info("!!!!!Introducing a Delay of!!!!: " + randomTime );
+        logger.info("!!!!!Introducing a Delay of!!!!: " + randomTime + "ms" );
         logger.info("#####Calling Cosmos####");
         try {
             Thread.sleep(randomTime);
