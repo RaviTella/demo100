@@ -1,6 +1,8 @@
 package com.example.demo100;
 
+import io.github.resilience4j.bulkhead.BulkheadConfig;
 import io.github.resilience4j.bulkhead.ThreadPoolBulkhead;
+import io.github.resilience4j.bulkhead.ThreadPoolBulkheadConfig;
 import io.github.resilience4j.decorators.Decorators;
 import io.github.resilience4j.retry.Retry;
 import io.github.resilience4j.retry.RetryConfig;
@@ -60,8 +62,13 @@ public class RecommendationsController {
     @RequestMapping(value = "/delayedRecommendations", method = RequestMethod.GET, produces = MediaType.APPLICATION_JSON_VALUE)
     Iterable<Recommendation> getAllWithDelay() throws ExecutionException, InterruptedException {
 
-        ThreadPoolBulkhead threadPoolBulkhead = ThreadPoolBulkhead
-                .ofDefaults("test");
+        //supplier run asynchronously in a ThreadPoolBulkhead
+        ThreadPoolBulkheadConfig threadPoolBulkheadconfig = ThreadPoolBulkheadConfig
+                .custom()
+                .maxThreadPoolSize(4)
+                .coreThreadPoolSize(2)
+                .queueCapacity(20)
+                .build();
 
         TimeLimiterConfig timeLimiterConfig = TimeLimiterConfig
                 .custom()
@@ -74,12 +81,12 @@ public class RecommendationsController {
                 .maxAttempts(4)
                 .retryExceptions(TimeoutException.class)
                 .build();
-
-        ScheduledExecutorService scheduledExecutorService = Executors.newScheduledThreadPool(3);
+        //Scheduler to schedule a timeout on a CompletableFuture and used for retries after the specified timeout
+        ScheduledExecutorService scheduledExecutorService = Executors.newScheduledThreadPool(4);
         Supplier<Iterable<Recommendation>> supplier = () -> recommendationService.getAllBooks();
         CompletableFuture<Iterable<Recommendation>> future = Decorators
                 .ofSupplier(supplier)
-                .withThreadPoolBulkhead(threadPoolBulkhead)
+                .withThreadPoolBulkhead(ThreadPoolBulkhead.of("config", threadPoolBulkheadconfig))
                 .withTimeLimiter(TimeLimiter.of(timeLimiterConfig), scheduledExecutorService)
                 .withRetry(Retry.of("config", retryConfig), scheduledExecutorService)
                 .get()
