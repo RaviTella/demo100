@@ -121,14 +121,14 @@ public class RecommendationsController {
         logger.info("COSMOS.QUERYPLAN_CACHING_ENABLED=" + System
                 .getenv()
                 .get("COSMOS.QUERYPLAN_CACHING_ENABLED"));
-        return recommendationRepository.findByIdAndAuthor("5", "Aleksandar Prokopec");
+        return recommendationRepository.findByIdAndAuthor("1", "Jonathan Baier");
     }
 
     @RequestMapping(value = "/queryjava", method = RequestMethod.GET, produces = MediaType.APPLICATION_JSON_VALUE)
-    List<Recommendation> Queryjava() {
+    List<Recommendation> queryjava() {
         CosmosQueryRequestOptions queryOptions = new CosmosQueryRequestOptions();
         queryOptions.setQueryMetricsEnabled(true);
-        String sql = "SELECT * FROM root r WHERE r.author = 'Aleksandar Prokopec'";
+        String sql = "SELECT * FROM root r WHERE r.author = 'Jonathan Baier'";
         SqlQuerySpec querySpec = new SqlQuerySpec(sql);
     return cosmosAsyncClient
                 .getDatabase("bstore")
