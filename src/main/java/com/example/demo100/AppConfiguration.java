@@ -1,8 +1,10 @@
 package com.example.demo100;
 
 import com.azure.core.credential.AzureKeyCredential;
+import com.azure.cosmos.CosmosAsyncClient;
 import com.azure.cosmos.CosmosClientBuilder;
 import com.azure.cosmos.DirectConnectionConfig;
+import com.azure.spring.data.cosmos.CosmosFactory;
 import com.azure.spring.data.cosmos.config.AbstractCosmosConfiguration;
 import com.azure.spring.data.cosmos.config.CosmosConfig;
 import com.azure.spring.data.cosmos.core.ResponseDiagnostics;
@@ -54,6 +56,12 @@ public class AppConfiguration extends AbstractCosmosConfiguration {
                 .credential(azureKeyCredential)
                 .directMode(directConnectionConfig);
     }
+
+    @Bean
+    public CosmosAsyncClient getCosmosAsyncClient(CosmosClientBuilder cosmosClientBuilder) {
+        return CosmosFactory.createCosmosAsyncClient(cosmosClientBuilder);
+    }
+
 
     @Override
     public CosmosConfig cosmosConfig() {

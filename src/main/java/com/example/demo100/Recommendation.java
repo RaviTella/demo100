@@ -14,9 +14,11 @@ public class Recommendation {
 	private String author;
 	private String description;
 	private String imageURL;
-	
+
+	public Recommendation() {}
+
 	public Recommendation(String id, String isbn, String title, String author, String description,
-			String imageURL) {
+						  String imageURL) {
 		super();
 		this.id = id;		
 		this.isbn = isbn;
